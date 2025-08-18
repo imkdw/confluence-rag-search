@@ -98,7 +98,6 @@ async function init() {
       data: { content: detail },
     });
 
-    console.log(`${pageId}번 페이지 조회완료`);
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
 }
