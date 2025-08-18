@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { config } from 'dotenv';
 import {
-  generateAuthorization,
+  generateConfluenceAuthorization,
   parseOpaqueCursorToken,
 } from '../../utils/confluence.util';
 import { GetConfluencePagesResponse } from '../../types/confluence/confluence-api.type';
@@ -29,7 +29,7 @@ async function getAllPages() {
         getPagesUrl,
         {
           headers: {
-            Authorization: generateAuthorization(),
+            Authorization: generateConfluenceAuthorization(),
             Accept: 'application/json',
           },
         },
@@ -73,7 +73,7 @@ async function getPageDetail(pageId: number) {
 
   const response = await axios.get<ConfluencePageDetail>(getPageDetailUrl, {
     headers: {
-      Authorization: generateAuthorization(),
+      Authorization: generateConfluenceAuthorization(),
       Accept: 'application/json',
     },
   });

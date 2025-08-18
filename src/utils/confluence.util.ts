@@ -2,11 +2,15 @@ import { config } from 'dotenv';
 
 config();
 
-export function generateAuthorization() {
+/**
+ * 컨플루언스 인증 토큰 생성
+ * @returns 컨플루언스 인증 토큰
+ */
+export function generateConfluenceAuthorization() {
   const email = process.env.CONFLUENCE_EMAIL;
   const apiKey = process.env.CONFLUENCE_API_KEY;
 
-  return `Basic ${Buffer.from(`${email}:${apiKey}`).toString('base64')}`;
+  return Buffer.from(`${email}:${apiKey}`).toString('base64');
 }
 
 /**
