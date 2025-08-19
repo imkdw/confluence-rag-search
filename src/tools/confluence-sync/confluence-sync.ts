@@ -22,7 +22,7 @@ async function getAllPages() {
   const limit = 250;
 
   do {
-    const getPagesUrl: string = `${baseUrl}/wiki/api/v2/pages?limit=${limit}${cursor ? `&cursor=${cursor}` : ''}`;
+    const getPagesUrl = `${baseUrl}/wiki/api/v2/pages?limit=${limit}${cursor ? `&cursor=${cursor}` : ''}`;
 
     try {
       const response = await axios.get<GetConfluencePagesResponse>(
@@ -84,22 +84,30 @@ async function getPageDetail(pageId: number) {
 async function init() {
   const pages = await getAllPages();
 
-  await prisma.$transaction(async (tx) => {
-    await deleteExistPages(tx);
-    await savePages(pages, tx);
-  });
+  /**
+   * 문서 목록 삭제하고 재저장
+   */
+  // await prisma.$transaction(async (tx) => {
+  //   await deleteExistPages(tx);
+  //   await savePages(pages, tx);
+  // });
 
-  for (const page of pages) {
-    const pageId = parseInt(page.id);
-    const detail = await getPageDetail(pageId);
+  /**
+   * 문서 목록 콘텐츠 업데이트
+   */
+  // for (const page of pages) {
+  //   const pageId = parseInt(page.id);
+  //   const detail = await getPageDetail(pageId);
 
-    await prisma.confluencePage.update({
-      where: { id: pageId },
-      data: { content: detail },
-    });
+  //   await prisma.confluencePage.update({
+  //     where: { id: pageId },
+  //     data: { content: detail },
+  //   });
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
+  //   await new Promise((resolve) => setTimeout(resolve, 500));
+  // }
+
+  return pages;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises

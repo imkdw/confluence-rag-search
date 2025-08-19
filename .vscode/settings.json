@@ -1,5 +1,10 @@
 {
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.preferences.importModuleSpecifierEnding": "auto",
-  "cSpell.words": ["genai", "langchain", "textsplitters"]
+  "cSpell.words": [
+    "autoincrement",
+    "genai",
+    "langchain",
+    "textsplitters"
+  ]
 }

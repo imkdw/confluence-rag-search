@@ -22,9 +22,7 @@ async function init() {
 
   const splittedPage = await splitByHTML(page.content);
 
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GOOGLE_API_KEY!,
-  });
+  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
 
   const response = await ai.models.embedContent({
     model: 'gemini-embedding-001',
@@ -34,8 +32,6 @@ async function init() {
       outputDimensionality: 1024,
     },
   });
-
-  console.log(response.embeddings);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises

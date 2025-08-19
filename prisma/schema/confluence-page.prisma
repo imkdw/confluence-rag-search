@@ -1,8 +1,9 @@
 /// 컨플루언스 페이지 항목들
 model ConfluencePage {
-  id        Int      @id
+  id        Int      @id @default(autoincrement())
   title     String
   content   String
+  url       String   @default("")
   createdAt DateTime @map("created_at")
   updatedAt DateTime @map("updated_at")
 
