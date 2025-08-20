@@ -20,7 +20,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@forge/bridge": "^5.2.0",
     "@google/genai": "^1.14.0",
     "@langchain/community": "^0.3.51",
     "@langchain/core": "^0.3.71",
@@ -30,14 +29,12 @@
     "@nestjs/platform-express": "^11.0.1",
     "@pinecone-database/pinecone": "^6.1.2",
     "@prisma/client": "^6.14.0",
-    "@xenova/transformers": "^2.17.2",
     "axios": "^1.11.0",
     "dotenv": "^17.2.1",
     "langchain": "^0.3.30",
     "prisma": "^6.14.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "sharp": "^0.34.3",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
