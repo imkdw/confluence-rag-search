@@ -1,14 +1,8 @@
 import axios from 'axios';
 import { config } from 'dotenv';
-import {
-  generateConfluenceAuthorization,
-  parseOpaqueCursorToken,
-} from '../../utils/confluence.util';
+import { generateConfluenceAuthorization, parseOpaqueCursorToken } from '../../utils/confluence.util';
 import { GetConfluencePagesResponse } from '../../types/confluence/confluence-api.type';
-import {
-  ConfluencePage,
-  ConfluencePageDetail,
-} from '../../types/confluence/confluence.type';
+import { ConfluencePage, ConfluencePageDetail } from '../../types/confluence/confluence.type';
 import { Prisma, PrismaClient } from '@prisma/client';
 
 config();
@@ -25,15 +19,12 @@ async function getAllPages() {
     const getPagesUrl = `${baseUrl}/wiki/api/v2/pages?limit=${limit}${cursor ? `&cursor=${cursor}` : ''}`;
 
     try {
-      const response = await axios.get<GetConfluencePagesResponse>(
-        getPagesUrl,
-        {
-          headers: {
-            Authorization: generateConfluenceAuthorization(),
-            Accept: 'application/json',
-          },
+      const response = await axios.get<GetConfluencePagesResponse>(getPagesUrl, {
+        headers: {
+          Authorization: generateConfluenceAuthorization(),
+          Accept: 'application/json',
         },
-      );
+      });
 
       pages.push(...response.data.results);
       cursor = parseOpaqueCursorToken(response.data._links.next);
@@ -47,19 +38,19 @@ async function getAllPages() {
   return pages;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function deleteExistPages(tx: Prisma.TransactionClient) {
   await tx.confluencePage.deleteMany();
 }
 
-async function savePages(
-  pages: ConfluencePage[],
-  tx: Prisma.TransactionClient,
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function savePages(pages: ConfluencePage[], tx: Prisma.TransactionClient) {
   const data = pages.map(
     (page): Prisma.ConfluencePageCreateManyInput => ({
       id: parseInt(page.id, 10),
       title: page.title,
       content: '',
+      url: `${baseUrl}/wiki${page._links.webui}`,
       createdAt: new Date(page.createdAt),
       updatedAt: new Date(page.createdAt),
     }),
@@ -81,6 +72,21 @@ async function getPageDetail(pageId: number) {
   return response.data.body.editor.value;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function updatePageContent(pages: ConfluencePage[]) {
+  for (const page of pages) {
+    const pageId = parseInt(page.id);
+    const detail = await getPageDetail(pageId);
+
+    await prisma.confluencePage.update({
+      where: { id: pageId },
+      data: { content: detail },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+}
+
 async function init() {
   const pages = await getAllPages();
 
@@ -95,17 +101,7 @@ async function init() {
   /**
    * 문서 목록 콘텐츠 업데이트
    */
-  // for (const page of pages) {
-  //   const pageId = parseInt(page.id);
-  //   const detail = await getPageDetail(pageId);
-
-  //   await prisma.confluencePage.update({
-  //     where: { id: pageId },
-  //     data: { content: detail },
-  //   });
-
-  //   await new Promise((resolve) => setTimeout(resolve, 500));
-  // }
+  // await updatePageContent(pages);
 
   return pages;
 }
