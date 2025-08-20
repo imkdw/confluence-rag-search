@@ -8,7 +8,8 @@ app = FastAPI()
 torch.set_num_threads(16)
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 
-model = SentenceTransformer("jhgan/ko-sroberta-multitask", device=device)
+# multilingual-e5-large 모델 로딩 (1024차원)
+model = SentenceTransformer("intfloat/multilingual-e5-large", device=device)
 
 
 class EmbeddingRequest(BaseModel):
@@ -17,7 +18,10 @@ class EmbeddingRequest(BaseModel):
 
 @app.post("/embeddings")
 def get_embeddings(request: EmbeddingRequest):
-    embedding = model.encode(request.text, convert_to_numpy=True)
+    text_with_prefix = f"query: {request.text}"
+
+    embedding = model.encode(text_with_prefix, convert_to_numpy=True)
+
     return {"embedding": embedding.tolist()}
 
 
