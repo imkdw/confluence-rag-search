@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { Document } from '@langchain/core/documents';
-import { pipeline, env, Tensor } from '@xenova/transformers';
+import axios from 'axios';
 
 const PINECONE_FREE_TIER_VECTOR_SHAPE = 1024;
 
@@ -31,34 +31,14 @@ async function googleEmbedding(document: Document): Promise<number[]> {
 }
 
 async function localEmbedding(document: Document): Promise<number[]> {
-  env.localModelPath = './models/';
-  env.allowRemoteModels = true;
+  try {
+    const response = await axios.post<{ embedding: number[] }>('http://localhost:8000/embeddings', {
+      text: document.pageContent,
+    });
 
-  const embedder = await pipeline('feature-extraction', 'Xenova/multilingual-e5-large');
-
-  const result = await embedder([document.pageContent], {
-    pooling: 'mean',
-    normalize: true,
-  });
-
-  return tensorToNumberArray(result);
-}
-
-function tensorToNumberArray(tensor: Tensor): number[] {
-  const data = tensor.data;
-
-  if (data instanceof Float32Array) {
-    return Array.from(data);
-  } else if (data instanceof Float64Array) {
-    return Array.from(data);
-  } else if (data instanceof BigInt64Array) {
-    return Array.from(data, (value: bigint) => Number(value));
-  } else if (data instanceof Int32Array) {
-    return Array.from(data);
-  } else if (Array.isArray(data)) {
-    return data.map(Number);
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unnecessary-type-assertion
-    return Array.from(data as any, Number);
+    return response.data.embedding;
+  } catch (error) {
+    console.error('임베딩 API 호출 에러:', error);
+    throw error;
   }
 }

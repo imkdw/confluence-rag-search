@@ -1,7 +1,6 @@
 import { Pinecone, PineconeRecord } from '@pinecone-database/pinecone';
 import { ConfluencePage, PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
-import { promises as fs } from 'fs';
 import { splitByHTML } from '../text-splitter/html.splitter';
 import { embeddingDocument } from './embedding';
 import { ConfluencePagesWithEmbedding, EmbeddingMetadata } from '../../types/embedding/embedding.type';
@@ -17,7 +16,8 @@ const pc = new Pinecone({
 
 const index = pc.index(process.env.PINECONE_INDEX!);
 
-const SAVE_FILE_PATH = './embedding-progress.json';
+const BATCH_SIZE = 10;
+const BATCH_DELAY_MS = 2000;
 
 function createMetadata(page: Pick<ConfluencePage, 'id' | 'title' | 'url' | 'content'>): EmbeddingMetadata {
   return {
@@ -28,8 +28,32 @@ function createMetadata(page: Pick<ConfluencePage, 'id' | 'title' | 'url' | 'con
   };
 }
 
-async function appendToJson(data: unknown): Promise<void> {
-  await fs.writeFile(SAVE_FILE_PATH, JSON.stringify(data, null, 2));
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function upsertInBatches(pineconeData: PineconeRecord<EmbeddingMetadata>[]): Promise<void> {
+  const totalBatches = Math.ceil(pineconeData.length / BATCH_SIZE);
+
+  for (let i = 0; i < pineconeData.length; i += BATCH_SIZE) {
+    const batch = pineconeData.slice(i, i + BATCH_SIZE);
+    const currentBatch = Math.floor(i / BATCH_SIZE) + 1;
+
+    console.log(`[${currentBatch}/${totalBatches}] 배치 처리 중... (${batch.length}개 레코드)`);
+
+    try {
+      await index.upsert(batch);
+      console.log(`[${currentBatch}/${totalBatches}] 배치 처리 완료`);
+
+      if (i + BATCH_SIZE < pineconeData.length) {
+        console.log(`${BATCH_DELAY_MS}ms 대기 중...`);
+        await sleep(BATCH_DELAY_MS);
+      }
+    } catch (error) {
+      console.error(`[${currentBatch}/${totalBatches}] 배치 처리 실패:`, error);
+      throw error;
+    }
+  }
 }
 
 async function init() {
@@ -75,9 +99,8 @@ async function init() {
     ),
   );
 
-  await appendToJson(pineconeData);
-
-  await index.upsert(pineconeData);
+  console.log(`총 ${pineconeData.length}개의 레코드를 ${BATCH_SIZE}개씩 배치 처리 시작`);
+  await upsertInBatches(pineconeData);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
