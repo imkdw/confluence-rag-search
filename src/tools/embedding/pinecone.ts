@@ -49,9 +49,8 @@ async function init() {
 
     const embeddings: number[][] = [];
     for (const splittedPage of splittedPages) {
-      const embedding = await embeddingDocument(splittedPage);
+      const embedding = await embeddingDocument('local', splittedPage);
       embeddings.push(embedding);
-      await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     const data = splittedPages.map((splittedPage, index) => ({

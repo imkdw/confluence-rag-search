@@ -1,5 +1,15 @@
 {
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.preferences.importModuleSpecifierEnding": "auto",
-  "cSpell.words": ["autoincrement", "editui", "edituiv", "genai", "langchain", "textsplitters", "tinyui", "webui"]
+  "cSpell.words": [
+    "autoincrement",
+    "editui",
+    "edituiv",
+    "genai",
+    "langchain",
+    "textsplitters",
+    "tinyui",
+    "webui",
+    "xenova"
+  ]
 }
