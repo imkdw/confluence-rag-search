@@ -10,7 +10,9 @@ export function generateConfluenceAuthorization() {
   const email = process.env.CONFLUENCE_EMAIL;
   const apiKey = process.env.CONFLUENCE_API_KEY;
 
-  return Buffer.from(`${email}:${apiKey}`).toString('base64');
+  const prefix = 'Basic';
+
+  return `${prefix} ${Buffer.from(`${email}:${apiKey}`).toString('base64')}`;
 }
 
 /**

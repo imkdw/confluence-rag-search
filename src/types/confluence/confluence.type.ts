@@ -12,6 +12,12 @@ export interface ConfluencePage {
   spaceId: string;
   status: string;
   body: unknown;
+  _links: {
+    editui: string;
+    webui: string;
+    edituiv2: string;
+    tinyui: string;
+  };
 }
 
 export interface ConfluencePageDetail extends ConfluencePage {

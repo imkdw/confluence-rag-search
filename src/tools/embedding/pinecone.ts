@@ -6,6 +6,8 @@ import { GoogleGenAI } from '@google/genai';
 
 config();
 
+const PINECONE_FREE_TIER_VECTOR_SHAPE = 1024;
+
 const prisma = new PrismaClient();
 
 const pc = new Pinecone({
@@ -28,8 +30,7 @@ async function init() {
     model: 'gemini-embedding-001',
     contents: 'What is the meaning of life?',
     config: {
-      // pinecone 프리티어 벡터 차원수
-      outputDimensionality: 1024,
+      outputDimensionality: PINECONE_FREE_TIER_VECTOR_SHAPE,
     },
   });
 }
