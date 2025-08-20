@@ -3,7 +3,7 @@ model ConfluencePage {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
-  url       String   @default("")
+  url       String
   createdAt DateTime @map("created_at")
   updatedAt DateTime @map("updated_at")
 
