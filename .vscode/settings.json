@@ -3,11 +3,13 @@
   "typescript.preferences.importModuleSpecifierEnding": "auto",
   "cSpell.words": [
     "autoincrement",
+    "chromadb",
     "editui",
     "edituiv",
     "genai",
     "jhgan",
     "langchain",
+    "metadatas",
     "sroberta",
     "textsplitters",
     "tinyui",

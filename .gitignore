@@ -57,7 +57,11 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # DB
 *.db
+*.sqlite3
 generated/
 
 # ETC
 embedding-progress.json
+
+# Vector, Embedding
+chroma/

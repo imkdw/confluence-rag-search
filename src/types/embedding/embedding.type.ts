@@ -1,4 +1,3 @@
-import { RecordMetadataValue } from '@pinecone-database/pinecone';
 import { ConfluencePage } from '@prisma/client';
 
 export interface EmbeddingMetadata {
@@ -6,7 +5,7 @@ export interface EmbeddingMetadata {
   title: string;
   url: string;
   contentPreview: string;
-  [key: string]: RecordMetadataValue;
+  [key: string]: string | number | null;
 }
 
 export interface ConfluencePagesWithEmbedding extends ConfluencePage {
