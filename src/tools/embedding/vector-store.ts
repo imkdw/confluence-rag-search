@@ -1,17 +1,21 @@
 import { ChromaClient, Collection } from 'chromadb';
-import { EmbeddingMetadata } from '../../types/embedding/embedding.type';
+import { EmbeddingData } from '../../types/embedding/embedding.type';
+import { EmbeddingClient } from './embedding';
 
 export class ChromaVectorStore {
+  private readonly embeddingClient: EmbeddingClient;
+
   private static readonly COLLECTION_NAME = 'confluence_rag_search';
   private readonly client: ChromaClient;
   private collection: Collection;
 
-  private constructor(client: ChromaClient, collection: Collection) {
+  private constructor(client: ChromaClient, collection: Collection, embeddingClient: EmbeddingClient) {
     this.client = client;
     this.collection = collection;
+    this.embeddingClient = embeddingClient;
   }
 
-  static async create(): Promise<ChromaVectorStore> {
+  static async create(embeddingClient: EmbeddingClient): Promise<ChromaVectorStore> {
     const client = new ChromaClient();
 
     let collection: Collection;
@@ -26,21 +30,39 @@ export class ChromaVectorStore {
       });
     }
 
-    return new ChromaVectorStore(client, collection);
+    return new ChromaVectorStore(client, collection, embeddingClient);
   }
 
-  async saveEmbeddings(embeddings: { id: string; embedding: number[]; metadata: EmbeddingMetadata }[]): Promise<void> {
-    await this.collection.add({
-      ids: embeddings.map((embedding) => embedding.id),
-      embeddings: embeddings.map((embedding) => embedding.embedding),
-      metadatas: embeddings.map((embedding) => embedding.metadata),
-    });
+  async saveEmbeddings(data: EmbeddingData[]): Promise<void> {
+    const batchSize = 5000;
+    const batches: EmbeddingData[][] = [];
+
+    for (let i = 0; i < data.length; i += batchSize) {
+      batches.push(data.slice(i, i + batchSize));
+    }
+
+    for (const batch of batches) {
+      await this.collection.upsert({
+        ids: batch.map((embedding) => embedding.id),
+        embeddings: batch.map((embedding) => embedding.values),
+        metadatas: batch.map((embedding) => embedding.metadata),
+      });
+    }
   }
 
-  async searchSimilar(embedding: number[], limit: number = 10) {
-    return this.collection.query({
+  async searchSimilar(word: string, limit: number = 10) {
+    const embedding = await this.embeddingClient.embeddingText(word, 'query');
+
+    const queryResult = await this.collection.query({
       queryEmbeddings: [embedding],
       nResults: limit,
     });
+
+    const result = queryResult.distances[0].map((distance, index) => ({
+      distance: distance ?? 0,
+      metadata: queryResult.metadatas[0][index],
+    }));
+
+    return result;
   }
 }

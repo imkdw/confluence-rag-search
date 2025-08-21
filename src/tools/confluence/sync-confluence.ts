@@ -4,8 +4,10 @@ import { ConfluenceClient } from './confluence.client';
 import { ChromaVectorStore } from '../embedding/vector-store';
 import { TextSplitter } from '../text-splitter/splitter';
 import { EmbeddingClient } from '../embedding/embedding';
-import { ConfluencePagesWithEmbedding, EmbeddingMetadata } from '../../types/embedding/embedding.type';
+import { ConfluencePagesWithEmbedding, EmbeddingData, EmbeddingMetadata } from '../../types/embedding/embedding.type';
 import { ConfluencePage } from '../../types/confluence/confluence.type';
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
 
 config();
 
@@ -56,7 +58,15 @@ function createMetadata(page: ConfluencePagesWithEmbedding): EmbeddingMetadata {
   };
 }
 
-async function createEmbeddingData(existPages: PrismaConfluencePage[]) {
+async function createEmbeddingData(existPages: PrismaConfluencePage[]): Promise<EmbeddingData[]> {
+  const jsonPath = join(process.cwd(), 'embedding-progress.json');
+  console.log(jsonPath);
+
+  const existEmbeddingData = await readFile(jsonPath, 'utf-8').catch(() => null);
+  if (existEmbeddingData) {
+    return JSON.parse(existEmbeddingData) as EmbeddingData[];
+  }
+
   const textSplitter = new TextSplitter();
   const embeddingClient = new EmbeddingClient();
 
@@ -67,14 +77,14 @@ async function createEmbeddingData(existPages: PrismaConfluencePage[]) {
 
     const embeddings: number[][] = [];
     for (const splittedPage of splittedPages) {
-      const embedding = await embeddingClient.embeddingDocument(splittedPage);
+      const embedding = await embeddingClient.embeddingText(splittedPage.pageContent, 'passage');
       embeddings.push(embedding);
     }
 
     const data = splittedPages.map((splittedPage, index) => ({
       ...page,
       content: splittedPage.pageContent,
-      contentPreview: splittedPage.pageContent.slice(0, 150),
+      contentPreview: splittedPage.pageContent.slice(0, 200),
       embeddings: embeddings[index],
     }));
 
@@ -92,9 +102,7 @@ async function createEmbeddingData(existPages: PrismaConfluencePage[]) {
 }
 
 async function init() {
-  let existPages = await prisma.confluencePage.findMany({
-    take: 10,
-  });
+  let existPages = await prisma.confluencePage.findMany();
 
   if (existPages.length === 0) {
     const pages = await confluenceClient.getAllPages();
@@ -109,16 +117,13 @@ async function init() {
     existPages = await prisma.confluencePage.findMany();
   }
 
-  const vectorStore = await ChromaVectorStore.create();
+  const embeddingClient = new EmbeddingClient();
+  const vectorStore = await ChromaVectorStore.create(embeddingClient);
   const embeddingData = await createEmbeddingData(existPages);
 
-  await vectorStore.saveEmbeddings(
-    embeddingData.map((data) => ({
-      id: data.id,
-      embedding: data.values,
-      metadata: data.metadata,
-    })),
-  );
+  await writeFile(join(process.cwd(), 'embedding-progress.json'), JSON.stringify(embeddingData, null, 2));
+
+  await vectorStore.saveEmbeddings(embeddingData);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises

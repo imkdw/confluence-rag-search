@@ -1,11 +1,11 @@
-import { Document } from '@langchain/core/documents';
 import axios from 'axios';
 
 export class EmbeddingClient {
-  async embeddingDocument(document: Document): Promise<number[]> {
+  async embeddingText(text: string, type: 'query' | 'passage'): Promise<number[]> {
     try {
       const response = await axios.post<{ embedding: number[] }>('http://localhost:9000/embeddings', {
-        text: document.pageContent,
+        text,
+        type,
       });
 
       return response.data.embedding;

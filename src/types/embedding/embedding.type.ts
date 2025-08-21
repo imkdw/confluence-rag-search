@@ -12,3 +12,9 @@ export interface ConfluencePagesWithEmbedding extends ConfluencePage {
   contentPreview: string;
   embeddings: number[];
 }
+
+export interface EmbeddingData {
+  id: string;
+  values: number[];
+  metadata: EmbeddingMetadata;
+}
