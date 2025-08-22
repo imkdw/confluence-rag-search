@@ -23,7 +23,7 @@ export async function search(word: string) {
   uniqueResults.forEach((result, index) => {
     const metadata = result.metadata!;
     console.log(`${index + 1}) ${metadata.title}`);
-    console.log(`  - 미리보기: ${metadata.contentPreview}`);
+    console.log(`  - 미리보기: ${metadata.content}`);
     console.log(`  - 링크: ${metadata.url}`);
     console.log(`  - 유사도: ${100 - Math.round(result.distance * 100)}%`);
     console.log('--------------------------------');

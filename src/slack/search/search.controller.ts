@@ -1,8 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { Message } from '../decorator/slack.decorator';
-import { SearchService } from './search.service';
+import { SearchService, SearchResult } from './search.service';
 import { KnownEventFromType, SlackEventMiddlewareArgs, types } from '@slack/bolt';
-import { VectorStoreSearchResult } from '../../vector-store/vector-store.type';
 
 @Controller()
 export class SearchController {
@@ -29,9 +28,23 @@ export class SearchController {
         return;
       }
 
+      await say({
+        text: `${query}에 대해서 검색 중입니다...`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `🔍 "${query}"에 대해서 검색 중입니다...`,
+            },
+          } satisfies types.SectionBlock,
+        ],
+      });
+
       const result = await this.searchService.search(query);
 
       const blocks = this.formatSearchResults(query, result);
+
       await say({
         text: `${result.length}개의 검색 결과를 찾았습니다`,
         blocks,
@@ -52,7 +65,7 @@ export class SearchController {
     }
   }
 
-  private formatSearchResults(query: string, results: VectorStoreSearchResult[]): types.KnownBlock[] {
+  private formatSearchResults(query: string, results: SearchResult[]): types.KnownBlock[] {
     const blocks: types.KnownBlock[] = [
       {
         type: 'section',
@@ -71,7 +84,7 @@ export class SearchController {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*${index + 1}. ${item.metadata.title}*\n${item.metadata.contentPreview.slice(0, 100)}...\n\n유사도: ${Math.round(100 - item.distance * 100)}%`,
+          text: `*${index + 1}. ${item.metadata.title}*\n${item.metadata.content.slice(0, 100)}...\n\n유사도: ${Math.round(item.relevanceScore * 100)}%`,
         },
         accessory: {
           type: 'button',

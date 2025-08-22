@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-torch.set_num_threads(16)
+torch.set_num_threads(12)
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 
 # multilingual-e5-large 모델 로딩 (1024차원)

@@ -1,7 +1,7 @@
 export interface VectorStoreMetadata {
   pageId: number;
   title: string;
-  contentPreview: string;
+  content: string;
   url: string;
 }
 

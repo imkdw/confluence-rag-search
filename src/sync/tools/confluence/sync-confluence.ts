@@ -54,13 +54,12 @@ function createMetadata(page: ConfluencePagesWithEmbedding): EmbeddingMetadata {
     pageId: page.id,
     title: page.title,
     url: page.url,
-    contentPreview: page.content,
+    content: page.content,
   };
 }
 
 async function createEmbeddingData(existPages: PrismaConfluencePage[]): Promise<EmbeddingData[]> {
   const jsonPath = join(process.cwd(), 'embedding-progress.json');
-  console.log(jsonPath);
 
   const existEmbeddingData = await readFile(jsonPath, 'utf-8').catch(() => null);
   if (existEmbeddingData) {
@@ -84,7 +83,6 @@ async function createEmbeddingData(existPages: PrismaConfluencePage[]): Promise<
     const data = splittedPages.map((splittedPage, index) => ({
       ...page,
       content: splittedPage.pageContent,
-      contentPreview: splittedPage.pageContent.slice(0, 200),
       embeddings: embeddings[index],
     }));
 

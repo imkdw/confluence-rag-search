@@ -4,12 +4,11 @@ export interface EmbeddingMetadata {
   pageId: number;
   title: string;
   url: string;
-  contentPreview: string;
+  content: string;
   [key: string]: string | number | null;
 }
 
 export interface ConfluencePagesWithEmbedding extends ConfluencePage {
-  contentPreview: string;
   embeddings: number[];
 }
 
