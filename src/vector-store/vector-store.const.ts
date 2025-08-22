@@ -1,0 +1,1 @@
+export const VECTOR_STORE_SERVICE = Symbol('VECTOR_STORE_SERVICE');

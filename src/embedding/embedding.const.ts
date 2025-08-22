@@ -1,0 +1,1 @@
+export const EMBEDDING_SERVICE = Symbol('EMBEDDING_SERVICE');

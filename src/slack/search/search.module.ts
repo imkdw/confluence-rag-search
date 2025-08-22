@@ -3,9 +3,10 @@ import { DiscoveryModule } from '@nestjs/core';
 import { SearchController } from './search.controller';
 import { SearchService } from './search.service';
 import { SlackMessageRegisterService } from '../service/slack-message-register.service';
+import { VectorStoreModule } from '../../vector-store/vector-store.module';
 
 @Module({
-  imports: [DiscoveryModule],
+  imports: [DiscoveryModule, VectorStoreModule],
   controllers: [SearchController],
   providers: [SlackMessageRegisterService, SearchService],
 })
