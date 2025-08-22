@@ -5,6 +5,8 @@ import { VectorStoreMetadata } from '../../vector-store/vector-store.type';
 import { RerankerService } from '../../reranker/reranker.service';
 import { RERANKER_SERVICE } from '../../reranker/reranker.const';
 import { DocumentCandidate } from '../../reranker/reranker.type';
+import { LLMService, RAGContext, AnswerResult } from '../../llm/llm.type';
+import { LLM_SERVICE } from '../../llm/llm.const';
 
 export interface SearchResult {
   distance: number;
@@ -20,6 +22,7 @@ export class SearchService {
   constructor(
     @Inject(VECTOR_STORE_SERVICE) private readonly vectorStoreService: VectorStoreService,
     @Inject(RERANKER_SERVICE) private readonly rerankerService: RerankerService,
+    @Inject(LLM_SERVICE) private readonly llmService: LLMService,
   ) {}
 
   async search(query: string): Promise<SearchResult[]> {
@@ -31,7 +34,6 @@ export class SearchService {
     }));
 
     const rerankedResults = await this.rerankerService.rerank(query, documents, this.RERANK_COUNT);
-    console.log(rerankedResults);
 
     return rerankedResults
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
@@ -40,5 +42,22 @@ export class SearchService {
         relevanceScore: result.relevanceScore,
         metadata: candidates[result.index].metadata,
       }));
+  }
+
+  async searchWithAnswer(query: string): Promise<AnswerResult> {
+    const searchResults = await this.search(query);
+
+    const contexts: RAGContext[] = searchResults.map((result) => ({
+      title: result.metadata.title,
+      content: result.metadata.content,
+      url: result.metadata.url,
+    }));
+
+    const answer = await this.llmService.generateAnswer(query, contexts);
+
+    return {
+      answer,
+      sources: searchResults.map((result) => result.metadata),
+    };
   }
 }

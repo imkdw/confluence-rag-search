@@ -5,9 +5,10 @@ import { SearchService } from './search.service';
 import { SlackMessageRegisterService } from '../service/slack-message-register.service';
 import { VectorStoreModule } from '../../vector-store/vector-store.module';
 import { RerankerModule } from '../../reranker/reranker.module';
+import { LLMModule } from '../../llm/llm.module';
 
 @Module({
-  imports: [DiscoveryModule, VectorStoreModule, RerankerModule],
+  imports: [DiscoveryModule, VectorStoreModule, RerankerModule, LLMModule],
   controllers: [SearchController],
   providers: [SlackMessageRegisterService, SearchService],
 })
