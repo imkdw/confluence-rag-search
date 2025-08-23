@@ -2,6 +2,7 @@
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.preferences.importModuleSpecifierEnding": "auto",
   "cSpell.words": [
+    "AILLM",
     "autoincrement",
     "chromadb",
     "editui",
@@ -10,6 +11,7 @@
     "intfloat",
     "jhgan",
     "langchain",
+    "LANGSMITH",
     "metadatas",
     "rerank",
     "reranked",

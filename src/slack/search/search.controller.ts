@@ -88,6 +88,19 @@ export class SearchController {
       }
 
       try {
+        await say({
+          text: `${query}에 대해서 답변을 생성중입니다...`,
+          blocks: [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `🔍 "${query}"에 대해서 답변을 생성중입니다...`,
+              },
+            } satisfies types.SectionBlock,
+          ],
+        });
+
         const result = await this.searchService.searchWithAnswer(query);
         const blocks = this.formatAnswerResult(query, result);
 

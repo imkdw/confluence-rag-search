@@ -2,17 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { LLMService, RAGContext } from './llm.type';
+import { traceable } from 'langsmith/traceable';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OpenAILLMService implements LLMService {
   private readonly llm: ChatOpenAI;
   private readonly promptTemplate: ChatPromptTemplate;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.llm = new ChatOpenAI({
       model: 'gpt-4o-mini',
       temperature: 0.1,
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: this.configService.get('OPENAI_API_KEY'),
     });
 
     this.promptTemplate = ChatPromptTemplate.fromMessages([
@@ -36,23 +38,35 @@ export class OpenAILLMService implements LLMService {
   }
 
   async generateAnswer(query: string, contexts: RAGContext[]): Promise<string> {
-    const contextText = contexts
-      .map(
-        (ctx, index) =>
-          `[문서 ${index + 1}] ${ctx.title}
-          ${ctx.url}
-          ${ctx.content}
-          ---`,
-      )
-      .join('\n\n');
+    return traceable(
+      async (query: string, contexts: RAGContext[]) => {
+        const contextText = contexts
+          .map(
+            (ctx, index) =>
+              `[문서 ${index + 1}] ${ctx.title}
+              ${ctx.url}
+              ${ctx.content}
+              ---`,
+          )
+          .join('\n\n');
 
-    const chain = this.promptTemplate.pipe(this.llm);
+        const chain = this.promptTemplate.pipe(this.llm);
 
-    const response = await chain.invoke({
-      context: contextText,
-      question: query,
-    });
+        const response = await chain.invoke({
+          context: contextText,
+          question: query,
+        });
 
-    return response.content as string;
+        return response.content as string;
+      },
+      {
+        name: this.configService.get('LANGSMITH_PROJECT'),
+        run_type: 'chain',
+        metadata: {
+          model: 'gpt-4o-mini',
+          contextCount: contexts.length,
+        },
+      },
+    )(query, contexts);
   }
 }
